@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>采集图像.png</file>
+    <file>连接相机.png</file>
+    <file>录制视频.png</file>
+    <file>设置.png</file>
+  </qresource>
+  <qresource prefix="新前缀"/>
+</RCC>

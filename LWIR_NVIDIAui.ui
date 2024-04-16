@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>690</width>
+    <height>392</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="serial_setting_button">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>310</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>幼圆</family>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>端口设置</string>
+    </property>
+    <property name="icon">
+     <iconset resource="../../2025毕业设计/part3机载计算/地面站界面设计/camera_Qt/图标/pic.qrc">
+      <normaloff>:/newPrefix/设置.png</normaloff>:/newPrefix/设置.png</iconset>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="feedback_information">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>190</y>
+      <width>251</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>幼圆</family>
+      <pointsize>7</pointsize>
+      <bold>true</bold>
+     </font>
+    </property>
+   </widget>
+   <widget class="QLabel" name="video_base">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>381</width>
+      <height>281</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel {
+    background-color: rgb(255, 255, 255); 
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="video_function">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>20</y>
+      <width>251</width>
+      <height>161</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel {
+    background-color: rgb(255, 255, 255); 
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="function_name">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>20</y>
+      <width>131</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel {
+    background-color: rgb(204, 224, 254); 
+}</string>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;时序型目标检测结果&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="capture_button">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>310</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>幼圆</family>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>图像采集</string>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../../2025毕业设计/part3机载计算/地面站界面设计/camera_Qt/图标/采集图像.png</normaloff>../../2025毕业设计/part3机载计算/地面站界面设计/camera_Qt/图标/采集图像.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="detection_button">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>310</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>幼圆</family>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>目标检测</string>
+    </property>
+    <property name="icon">
+     <iconset resource="../../2025毕业设计/part3机载计算/地面站界面设计/camera_Qt/图标/pic.qrc">
+      <normaloff>:/newPrefix/设置.png</normaloff>:/newPrefix/设置.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="connect_button">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>310</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>打开相机</string>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../../2025毕业设计/part3机载计算/地面站界面设计/camera_Qt/图标/连接相机.png</normaloff>../../2025毕业设计/part3机载计算/地面站界面设计/camera_Qt/图标/连接相机.png</iconset>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>690</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../../2025毕业设计/part3机载计算/地面站界面设计/camera_Qt/图标/pic.qrc"/>
+ </resources>
+ <connections/>
+</ui>
