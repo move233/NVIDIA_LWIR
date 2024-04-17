@@ -1,3 +1,4 @@
+#function：之前做的界面，做范例使用
 import sys
 import threading
 import time

@@ -1,4 +1,4 @@
-# 界面显示与各个功能调用
+# function：界面显示与各个功能调用
 # version:添加界面显示功能
 import ctypes
 import threading
@@ -42,7 +42,7 @@ def send(send_data):
         print("发送失败！")
 
 # 加载 DLL
-dll = ctypes.WinDLL('E:/vscode_c++_project/dll_new/source/dll_c/build/camera.dll', winmode=0)
+dll = ctypes.WinDLL('E:/vscode_c++_project/nvidia_LWIR/build/camera2.dll', winmode=0)
 # 定义返回类型
 dll.getImageBufferAddress.argtypes = []  # 无参数
 dll.getImageBufferAddress.restype = ctypes.POINTER(ctypes.c_ubyte) 
@@ -107,33 +107,37 @@ class MainApp(QMainWindow, Ui_MainWindow):
         image_8bit = ((img - min_val) / (max_val - min_val) * 255).astype(np.uint8)
         return image_8bit
 
+    def startstream():
+            dll.start_stream()
+
     # 打开相机
     def START_stream(self):
-        # dll.start_stream()
-        # time.sleep(1)
-        # buffer_size = 640*512
-        # # 获取图像缓冲区地址
-        # buffer_address = dll.getImageBufferAddress()
-        # buffer = (ctypes.c_uint16 * buffer_size).from_address(ctypes.addressof(buffer_address.contents))
-        # # 使用 NumPy 创建数组视图
-        # image = np.frombuffer(buffer, dtype=np.uint16).reshape((512, 640)) 
-        # min_val = np.min(image)
-        # max_val = np.max(image)
-        # print(min_val,max_val)
-        # # 转换为8位来显示
-        # image_normalized = ((image - min_val) / (max_val - min_val) * 255).astype(np.uint8)
-        # self.frame_base = image_normalized
-        # # 在界面中显示
-        # #self.display()
-        # self.frame_timer.start(30)
+        # 启动视频流线程
+        t = threading.Thread(target = dll.start_stream)
+        t.start()
+        time.sleep(0.5)
+        buffer_size = 640*512
+        # 获取图像缓冲区地址
+        buffer_address = dll.getImageBufferAddress()
+        buffer = (ctypes.c_uint16 * buffer_size).from_address(ctypes.addressof(buffer_address.contents))
+        image = np.frombuffer(buffer, dtype=np.uint16).reshape((512, 640))
         # 切换按钮功能
         text_start = "相机已连接"
         self.feedback_information.append(text_start)
         self.connect_button.setText('关闭相机')
-
-
+        while True:
+            min_val = np.min(image)
+            max_val = np.max(image)
+            # 转换为8位来显示
+            image_normalized = ((image - min_val) / (max_val - min_val) * 255).astype(np.uint8)
+            self.frame_base = image_normalized
+            # 在界面中显示
+            self.display()
+            # self.frame_timer.start(30)
+            cv2.waitKey(3)
         
-    
+        
+
     # 关闭相机
     def STOP_stream(self):
         # dll.stop_stream()

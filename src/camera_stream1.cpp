@@ -1,5 +1,5 @@
 // ******function：对相机视频流实时显示******
-// version:4.12 显示视频画面，设置突出函数stopstream
+// version:4.12 显示视频画面，设置退出函数stopstream
 #include "export.h"
 
 static unsigned char imageBuffer[HEIGHT * WIDTH * 2];
