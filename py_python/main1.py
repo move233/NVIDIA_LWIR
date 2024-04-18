@@ -15,32 +15,6 @@ import time
 
 
 # ******初始定义******
-# 定义串口
-ser = serial.Serial()
-#对串口的参数进行配置
-def port_open_recv(com,baud,s):
-    s.port = com
-    s.baudrate=baud
-    s.bytesize=8
-    s.stopbits=1
-    s.parity="N"#奇偶校验位
-    s.open()
-    if(s.isOpen()):
-        return 1
-        #text_start = "串口打开成功！"
-        #self.feedback_information.append(text_start)
-    else:
-        return 0
-        # text_start = "串口打开失败！"
-        # self.feedback_information.append(text_start)
-
-def send(send_data):
-    if(ser.isOpen()):
-        ser.write(send_data.encode('utf-8'))#编码
-        print("发送成功",send_data)
-    else:
-        print("发送失败！")
-
 # 加载 DLL
 dll = ctypes.WinDLL('E:/vscode_c++_project/nvidia_LWIR/build/camera2.dll', winmode=0)
 # 定义返回类型
@@ -53,12 +27,9 @@ class MainApp(QMainWindow, Ui_MainWindow):
     # 初始化
     def __init__(self):
         super().__init__()
-
         self.setupUi(self)  # 设置UI
-        # 串口
-        # self.ser=serial.Serial()
-        # self.status=port_open_recv("COM7",115200,ser)   
-        # print(self.status)
+        self.ser=serial.Serial()
+        self.port_open_recv("COM8", 9600)   
         # 视频显示区域
         self.detect_flag=0
         self.frame_base = None
@@ -69,48 +40,48 @@ class MainApp(QMainWindow, Ui_MainWindow):
         # 状态返回区域设置为只读不允许编辑
         self.feedback_information.setReadOnly(True)
         # 连接按钮等控件的信号与槽
-        self.connect_button.clicked.connect(self.camera_stream)
-        self.detection_button.clicked.connect(self.click_detect)
+        self.connect_button.clicked.connect(self.START_stream)
+        self.detection_button.clicked.connect(self.detection)
         self.capture_button.clicked.connect(self.capture)
-        self.frame_timer = QTimer(self)  # 计时器，用来控制update_frame的循环调用的频率，在start_camera函数中启动这个计时器，这里只做初始化
-        self.frame_timer.timeout.connect(self.display)
-        self.detect_timer=QTimer(self)
-        self.detect_timer.timeout.connect(self.detection)
-    # 视频画面显示
+        # self.frame_timer = QTimer(self)  # 计时器，用来控制update_frame的循环调用的频率，在start_camera函数中启动这个计时器，这里只做初始化
+        # self.frame_timer.timeout.connect(self.display)
+        # self.detect_timer=QTimer(self)
+        # self.detect_timer.timeout.connect(self.detection)
+    
+    def port_open_recv(self, com, baud):
+        self.ser.port = com
+        self.ser.baudrate = baud
+        self.ser.bytesize = 8
+        self.ser.stopbits = 1
+        self.ser.parity = "N"
+        self.ser.open()
+
+    def send(self,send_data):
+        if self.ser.isOpen():
+            self.ser.write(send_data.encode('utf-8'))
+            text_serial = send_data + "发送成功"
+            self.feedback_information.append(text_serial)
+        else:
+            text_serial = "发送失败！串口未打开"
+            self.feedback_information.append(text_serial)
+
     def display(self):
         # h, w = self.frame_base.shape
         # bytes_per_line = w
-        #-----------------------
-        #更新视频帧代码
-        #-----------------------
+        # while finished:
         if self.frame_base is not None:
             img_base = QImage(self.frame_base.data, 640, 512, 640, QImage.Format.Format_Grayscale8)
             pixmap_base = QPixmap.fromImage(img_base)
             self.video_base.setPixmap(pixmap_base)
+            
+            # if not finished:
+            #     break
+        # if self.function_base is not None:
+        #     img_function = QImage(self.frame_function.data, 640, 512, 640, QImage.Format.Format_Grayscale8)
+        #     # scaled_pixmap2 = pixmap2.scaled(self.video_function.size(), Qt.AspectRatioMode.KeepAspectRatio)
+        #     pixmap_function = QPixmap.fromImage(img_function)
+        #     self.video_function.setPixmap(pixmap_function)
 
-        # img_function = QImage(self.frame_function.data, 640, 512, 640, QImage.Format.Format_Grayscale8)
-        # # scaled_pixmap2 = pixmap2.scaled(self.video_function.size(), Qt.AspectRatioMode.KeepAspectRatio)
-        # pixmap_function = QPixmap.fromImage(img_function)
-        # self.video_function.setPixmap(pixmap_function)
-
-    # 选择相机打开/关闭切换功能
-    def camera_stream(self):
-        if self.connect_button.text() == '打开相机':
-            self.START_stream()
-        else:
-            self.STOP_stream()
-
-    # 归一化显示
-    def Normalization(img):
-        min_val = np.min(img)
-        max_val = np.max(img)
-        image_8bit = ((img - min_val) / (max_val - min_val) * 255).astype(np.uint8)
-        return image_8bit
-
-    def startstream():
-            dll.start_stream()
-
-    # 打开相机
     def START_stream(self):
         # 启动视频流线程
         t = threading.Thread(target = dll.start_stream)
@@ -121,10 +92,8 @@ class MainApp(QMainWindow, Ui_MainWindow):
         buffer_address = dll.getImageBufferAddress()
         buffer = (ctypes.c_uint16 * buffer_size).from_address(ctypes.addressof(buffer_address.contents))
         image = np.frombuffer(buffer, dtype=np.uint16).reshape((512, 640))
-        # 切换按钮功能
         text_start = "相机已连接"
         self.feedback_information.append(text_start)
-        self.connect_button.setText('关闭相机')
         while True:
             min_val = np.min(image)
             max_val = np.max(image)
@@ -135,15 +104,32 @@ class MainApp(QMainWindow, Ui_MainWindow):
             self.display()
             # self.frame_timer.start(30)
             cv2.waitKey(3)
-        
-        
+    
+    def detection(self):
+        def send_instructions():
+            while True:
+                self.send('0ma00000000\r\n')
+                time.sleep(0.3)
+                I0 = self.frame_base
 
-    # 关闭相机
-    def STOP_stream(self):
-        # dll.stop_stream()
-        text_stop = "相机已断开"
-        self.feedback_information.append(text_stop)
-        self.connect_button.setText('打开相机')
+                text_capture = "0°图像已采集"
+                self.feedback_information.append(text_capture)
+                time.sleep(1)
+
+                self.send('0mr00008C00\r\n')
+                time.sleep(0.3)
+                I90 = self.frame_base
+                text_capture = "90°图像已采集"
+                self.feedback_information.append(text_capture)
+
+                # Data_re = np.stack((I0, I90), axis=2)
+                # nHeight_re, nWidth_re, _ = Data_re.shape
+                # Data_re1 = Data_re.reshape(nWidth_re*nHeight_re, 2).T
+                # r1_re = RX(Data_re1)
+                # img_re = r1_re.reshape(nHeight_re, nWidth_re)
+                # self.frame2 = img_re
+                time.sleep(1)
+        threading.Thread(target=send_instructions).start()
 
     # 目标检测
     def RX(X):
@@ -157,33 +143,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
 
         return D
     
-    def click_detect(self):
-        self.detect_timer.start(30)
-    def detection(self):
-
-        send('0ma00000000\r\n')
-        time.sleep(0.3)
-        I0= self.frame_base
-
-        text_capture = "0°图像已采集"
-        self.feedback_information.append(text_capture)
-
-        time.leep(0.7)
-
-        send('0mr00008C00\r\n')
-        time.sleep(0.3)
-        I90 = self.frame_base
-        text_capture = "90°图像已采集"
-        self.feedback_information.append(text_capture)
-        time.sleep(0.7)
-        Data_re = np.stack((I0, I90), axis=2)
-        nHeight_re, nWidth_re, _ = Data_re.shape
-        Data_re1 = Data_re.reshape(nWidth_re*nHeight_re, 2).T
-        r1_re = RX(Data_re1)
-        img_re = r1_re.reshape(nHeight_re, nWidth_re)
-        img_re = normalization(img_re)
-        self.frame2 = img_re
-
     # 保存图像
     def capture(self):
         # if self.frame1 is not None:
