@@ -1,5 +1,7 @@
 # function：界面显示与各个功能调用
 # version:添加界面显示功能
+# bug:电机再一个周期时间内会存在连续顺时针旋转两次，连续逆时针旋转两次的现象，这是什么原因？
+# bug：反馈信息显示窗口滚动条不会自动往下，还需调整
 import ctypes
 import threading
 import numpy as np
@@ -21,6 +23,27 @@ dll = ctypes.WinDLL('E:/vscode_c++_project/nvidia_LWIR/build/camera2.dll', winmo
 dll.getImageBufferAddress.argtypes = []  # 无参数
 dll.getImageBufferAddress.restype = ctypes.POINTER(ctypes.c_ubyte) 
 
+# 定义目标检测函数
+def RX(img0,img90):
+        Data_re = np.stack((img0, img90), axis=2)
+        nHeight_re, nWidth_re, _ = Data_re.shape
+        Data_re1 = Data_re.reshape(nWidth_re*nHeight_re, 2).T
+        X_mean = np.mean(Data_re1, axis=1, keepdims=True)
+        X = Data_re1 - X_mean
+        Sigma = np.dot(X, X.T) / X.shape[1]
+        Sigma_inv = np.linalg.inv(Sigma)
+        D = np.zeros(X.shape[1])
+        for m in range(X.shape[1]):
+            D[m] = np.dot(np.dot(X[:, m].T, Sigma_inv), X[:, m])
+
+        img_re = D.reshape(nHeight_re, nWidth_re)
+        min = np.min(img_re)
+        max = np.max(img_re)
+        # 转换为8位来显示
+        img_re1 = ((img_re - min) / (max - min) * 255).astype(np.uint8)
+        return img_re1
+
+
 
 # ******gui设计******
 class MainApp(QMainWindow, Ui_MainWindow):
@@ -33,8 +56,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
         # 视频显示区域
         self.detect_flag=0
         self.frame_base = None
-        self.old_frame=None
-        self.new_frame=None
         self.frame_function = None
         self.display()
         # 状态返回区域设置为只读不允许编辑
@@ -43,10 +64,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.connect_button.clicked.connect(self.START_stream)
         self.detection_button.clicked.connect(self.detection)
         self.capture_button.clicked.connect(self.capture)
-        # self.frame_timer = QTimer(self)  # 计时器，用来控制update_frame的循环调用的频率，在start_camera函数中启动这个计时器，这里只做初始化
-        # self.frame_timer.timeout.connect(self.display)
-        # self.detect_timer=QTimer(self)
-        # self.detect_timer.timeout.connect(self.detection)
     
     def port_open_recv(self, com, baud):
         self.ser.port = com
@@ -66,22 +83,16 @@ class MainApp(QMainWindow, Ui_MainWindow):
             self.feedback_information.append(text_serial)
 
     def display(self):
-        # h, w = self.frame_base.shape
-        # bytes_per_line = w
-        # while finished:
         if self.frame_base is not None:
             img_base = QImage(self.frame_base.data, 640, 512, 640, QImage.Format.Format_Grayscale8)
             pixmap_base = QPixmap.fromImage(img_base)
             self.video_base.setPixmap(pixmap_base)
             
-            # if not finished:
-            #     break
-        # if self.function_base is not None:
-        #     img_function = QImage(self.frame_function.data, 640, 512, 640, QImage.Format.Format_Grayscale8)
-        #     # scaled_pixmap2 = pixmap2.scaled(self.video_function.size(), Qt.AspectRatioMode.KeepAspectRatio)
-        #     pixmap_function = QPixmap.fromImage(img_function)
-        #     self.video_function.setPixmap(pixmap_function)
-
+        if self.frame_function is not None:
+            img_function = QImage(self.frame_function.data, 640, 512, 640, QImage.Format.Format_Grayscale8)
+            pixmap_function = QPixmap.fromImage(img_function)
+            self.video_function.setPixmap(pixmap_function)
+    
     def START_stream(self):
         # 启动视频流线程
         t = threading.Thread(target = dll.start_stream)
@@ -102,46 +113,37 @@ class MainApp(QMainWindow, Ui_MainWindow):
             self.frame_base = image_normalized
             # 在界面中显示
             self.display()
-            # self.frame_timer.start(30)
             cv2.waitKey(3)
     
     def detection(self):
-        def send_instructions():
-            while True:
-                self.send('0ma00000000\r\n')
-                time.sleep(0.3)
-                I0 = self.frame_base
+        self.detection_running = True
+        def detection_loop(main_app_instance):
+            while main_app_instance.detection_running:
+                main_app_instance.send('0ma00000000\r')
+                time.sleep(0.5)
+                I90 = main_app_instance.frame_base
+                main_app_instance.send('0sj00008C00\r')
 
-                text_capture = "0°图像已采集"
-                self.feedback_information.append(text_capture)
+                main_app_instance.send('0fw\r')
+                time.sleep(0.5)
+                I0 = I90
+                I90 = main_app_instance.frame_base
+                main_app_instance.frame_function = RX(I0, I90)
+                main_app_instance.display()
+                main_app_instance.feedback_information.append("检测成功")
                 time.sleep(1)
 
-                self.send('0mr00008C00\r\n')
-                time.sleep(0.3)
-                I90 = self.frame_base
-                text_capture = "90°图像已采集"
-                self.feedback_information.append(text_capture)
-
-                # Data_re = np.stack((I0, I90), axis=2)
-                # nHeight_re, nWidth_re, _ = Data_re.shape
-                # Data_re1 = Data_re.reshape(nWidth_re*nHeight_re, 2).T
-                # r1_re = RX(Data_re1)
-                # img_re = r1_re.reshape(nHeight_re, nWidth_re)
-                # self.frame2 = img_re
+                main_app_instance.send('0bw\r')
+                time.sleep(0.5)
+                I0 = I90
+                I90 = main_app_instance.frame_base
+                main_app_instance.frame_function = RX(I0, I90)
+                main_app_instance.display()
+                main_app_instance.feedback_information.append("检测成功")
                 time.sleep(1)
-        threading.Thread(target=send_instructions).start()
+        
+        threading.Thread(target=detection_loop, args=(self,)).start()
 
-    # 目标检测
-    def RX(X):
-        X_mean = np.mean(X, axis=1, keepdims=True)
-        X = X - X_mean
-        Sigma = np.dot(X, X.T) / X.shape[1]
-        Sigma_inv = np.linalg.inv(Sigma)
-        D = np.zeros(X.shape[1])
-        for m in range(X.shape[1]):
-            D[m] = np.dot(np.dot(X[:, m].T, Sigma_inv), X[:, m])
-
-        return D
     
     # 保存图像
     def capture(self):
@@ -159,4 +161,3 @@ if __name__=="__main__":
     window = MainApp()
     window.show()
     sys.exit(app.exec())
-

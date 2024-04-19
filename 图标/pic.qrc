@@ -6,4 +6,5 @@
     <file>设置.png</file>
   </qresource>
   <qresource prefix="新前缀"/>
+  <qresource prefix="新前缀"/>
 </RCC>
