@@ -161,3 +161,25 @@ if __name__=="__main__":
     window = MainApp()
     window.show()
     sys.exit(app.exec())
+
+# 草稿：关于切换偏振通道采集图像
+def capture(self):
+    self.capture_running = True
+    def capture_loop(main_app_instance):
+        while main_app_instance.capture_running:
+            #切换回到零位
+            main_app_instance.send('0ma00000000\r')
+            time.sleep(0.5)
+            I90 = main_app_instance.frame_base
+            #设置相对转动角度
+            main_app_instance.send('0sj00008C00\r')#90
+            main_app_instance.send('0sj00005D55\r')#60
+            main_app_instance.send('0sj00004600\r')#45
+            main_app_instance.send('0sj00002EAB\r')#30
+            main_app_instance.send('0sj000007C7\r')#5
+            # 间隔转动：
+            main_app_instance.send('0fw\r')#顺时针转动
+            main_app_instance.send('0bw\r')#逆时针转动
+            time.sleep(1)
+    
+    threading.Thread(target=capture_loop, args=(self,)).start()
