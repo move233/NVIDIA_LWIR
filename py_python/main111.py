@@ -6,17 +6,17 @@ import ctypes
 import threading
 import numpy as np
 import cv2
-import time
+import datetime
 import serial
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget,QFileDialog
 from PyQt6.QtGui import QImage, QPixmap
-from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtCore import QTimer, Qt, pyqtSignal
 from PyQt5.QtWidgets import QDialog
 from PyQt5 import uic
-from LWIR_NVIDIAui import Ui_MainWindow
-from capture_setting import Ui_capture_setting
+from LWIR_NVIDIAui111 import Ui_LWIR
 import sys
 import time
+import os
 
 
 # ******初始定义******
@@ -49,44 +49,13 @@ def RX(img0,img90):
 
 
 # ******gui设计******
-class CAPTURE(QMainWindow, Ui_capture_setting):
-    def __init__(self):
-        super().__init__()
-        self.setupUi(self)
-        uic.loadUi('Ui_capture_setting.ui', self)
-        self.pathfile.clicked.connect(self.capture_pathfile)
-        self.angle.currentIndexChanged.connect(self.angle_status)
-        self.capture.clicked.connect(self.captur)
-
-    def show(self):
-        self.show
-
-    def capture_pathfile(self):
-        folder_path = QFileDialog.getExistingDirectory(self, "选择文件夹", "/")
-        if folder_path:
-            self.filedisplay.setText(folder_path)
-
-    def angle_status(self,index):
-        print("当前选中项的索引:", index)#所引述徐是按照界面设计从0开始编号的
-        print("当前选中项的文本:", self.angle.currentText())
-    
-    def capture(self):
-        # if self.frame1 is not None:
-        #     current_time = datetime.now()
-        #     file_name = current_time.strftime("%H%M%S") + ".jpg"
-        #     cv2.imwrite(file_name, self.frame1)
-        # print("capture")
-        text_start = "图片已保存"
-        self.feedback_information.append(text_start)
-
-
-class MainApp(QWidget, Ui_MainWindow):
+class MainWindow(QMainWindow,Ui_LWIR):
     # 初始化
-    def __init__(self):
-        super().__init__()
-        self.setupUi(self)  # 设置UI
-        # self.ser=serial.Serial()
-        # self.port_open_recv("COM8", 9600)   
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.ser=serial.Serial()
+        self.port_open_recv("COM8", 9600)   
         # 视频显示区域
         self.detect_flag=0
         self.frame_base = None
@@ -97,8 +66,13 @@ class MainApp(QWidget, Ui_MainWindow):
         # 连接按钮等控件的信号与槽
         self.connect_button.clicked.connect(self.START_stream)
         self.detection_button.clicked.connect(self.detection)
-        self.capture_button.clicked.connect(self.open_capturewindow)
-    
+        self.path_file.clicked.connect(self.pathfile)
+        self.angle_display.currentIndexChanged.connect(self.angle_status)
+        self.download_button.clicked.connect(self.download_capture)
+        self.angle_flag=None
+        self.angle_N=None
+        self.folder_path = None
+
     def port_open_recv(self, com, baud):
         self.ser.port = com
         self.ser.baudrate = baud
@@ -175,42 +149,81 @@ class MainApp(QWidget, Ui_MainWindow):
                 main_app_instance.display()
                 main_app_instance.feedback_information.append("检测成功")
                 time.sleep(1)
-        
         threading.Thread(target=detection_loop, args=(self,)).start()
 
-    
     # 保存图像-打开图像保存设置窗口
-    def open_capturewindow(self):
-        subwindow = CAPTURE
-        subwindow.setWindowTitle("Capture Setting")
-        subwindow.setGeometry(200, 200, 300, 200)
-        subwindow.show()
+    def pathfile(self):
+        self.folder_path = QFileDialog.getExistingDirectory(self, "选择文件夹", "/")
+        if self.folder_path:
+            self.path_display.setText(self.folder_path)
+
+    def angle_status(self,index):
+        self.angle_flag = index#记录下当前索引，以便于采集时驱动电机用
+        text_download = "当前偏振通道："+ str(index)+"  "+self.angle_display.currentText()
+        self.feedback_information.append(text_download)
+        # return index
+
+    def download_capture(self):
+        self.capture_running = True
+        def capture_loop(main_app_instance):
+            while main_app_instance.capture_running:
+                #90
+                if main_app_instance.angle_flag == 1 :
+                    send_data = '0sj00008C00\r'
+                    main_app_instance.angle_N = 3
+                # 60
+                elif main_app_instance.angle_flag == 2 :
+                    send_data = '0sj00005D55\r'
+                    main_app_instance.angle_N = 4
+                # 45
+                elif main_app_instance.angle_flag == 3 :
+                    send_data = '0sj00004600\r'
+                    main_app_instance.angle_N = 5
+                # 30
+                elif main_app_instance.angle_flag == 4 :
+                    send_data = '0sj00002EAB\r'
+                    main_app_instance.angle_N = 7
+                # 5
+                elif main_app_instance.angle_flag == 5 :
+                    send_data = '0sj000007C7\r'
+                    main_app_instance.angle_N = 37
+                main_app_instance.capture_running=False
+                current_time = datetime.datetime.now().strftime('%Y-%m-%d-%H_%M_%S')
+                folder_name = str(main_app_instance.angle_flag) + '_' + current_time+'/'
+                print(folder_name)
+                os.makedirs(main_app_instance.folder_path + '/'+folder_name)
+                text_folder = "文件夹" + format(folder_name) + "创建成功"
+                main_app_instance.feedback_information.append(text_folder)
+                #电机切换回到零位
+                main_app_instance.send(send_data)
+                time.sleep(2)
+                main_app_instance.send('0ma00000000\r')
+                time.sleep(1)
+                if main_app_instance.frame_base is not None:
+                    save_path = os.path.join(main_app_instance.folder_path, folder_name, '1.bmp')
+                    cv2.imwrite(save_path, main_app_instance.frame_base)
+                # 设置相对转动角度
+                
+                n = 2
+                while (n<=main_app_instance.angle_N):
+                    time.sleep(1)
+                    main_app_instance.send('0fw\r')#顺时针转动
+                    if main_app_instance.frame_base is not None:
+                        save_path = os.path.join(main_app_instance.folder_path, folder_name, str(n) + '.bmp')
+                        cv2.imwrite(save_path, main_app_instance.frame_base)
+                    n=n+1
+                if n==main_app_instance.angle_N+1:
+                    main_app_instance.send('0ma00000000\r')
+                    text_download = "采集完成"
+                    main_app_instance.feedback_information.append(text_download)
+
+        threading.Thread(target=capture_loop, args=(self,)).start()
+
 
 
 if __name__=="__main__":
     app = QApplication(sys.argv)
-    window = MainApp()
-    window.show()
+    win = MainWindow()
+    win.show()
     sys.exit(app.exec())
 
-# 草稿：关于切换偏振通道采集图像
-def capture(self):
-    self.capture_running = True
-    def capture_loop(main_app_instance):
-        while main_app_instance.capture_running:
-            #切换回到零位
-            main_app_instance.send('0ma00000000\r')
-            time.sleep(0.5)
-            I90 = main_app_instance.frame_base
-            #设置相对转动角度
-            main_app_instance.send('0sj00008C00\r')#90
-            main_app_instance.send('0sj00005D55\r')#60
-            main_app_instance.send('0sj00004600\r')#45
-            main_app_instance.send('0sj00002EAB\r')#30
-            main_app_instance.send('0sj000007C7\r')#5
-            # 间隔转动：
-            main_app_instance.send('0fw\r')#顺时针转动
-            main_app_instance.send('0bw\r')#逆时针转动
-            time.sleep(1)
-    
-    threading.Thread(target=capture_loop, args=(self,)).start()
