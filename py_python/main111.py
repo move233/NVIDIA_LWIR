@@ -1,23 +1,17 @@
-# function：界面显示与各个功能调用
-# version:添加界面显示功能
-# bug:电机再一个周期时间内会存在连续顺时针旋转两次，连续逆时针旋转两次的现象，这是什么原因？
-# bug：反馈信息显示窗口滚动条不会自动往下，还需调整
 import ctypes
 import threading
 import numpy as np
 import cv2
 import datetime
 import serial
+import serial.tools.list_ports
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget,QFileDialog
 from PyQt6.QtGui import QImage, QPixmap
-from PyQt6.QtCore import QTimer, Qt, pyqtSignal
-from PyQt5.QtWidgets import QDialog
-from PyQt5 import uic
+from PyQt6 import uic
 from LWIR_NVIDIAui111 import Ui_LWIR
 import sys
 import time
 import os
-
 
 # ******初始定义******
 # 加载 DLL
@@ -46,16 +40,13 @@ def RX(img0,img90):
         img_re1 = ((img_re - min) / (max - min) * 255).astype(np.uint8)
         return img_re1
 
-
-
 # ******gui设计******
 class MainWindow(QMainWindow,Ui_LWIR):
     # 初始化
     def __init__(self,parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.ser=serial.Serial()
-        self.port_open_recv("COM8", 9600)   
+        # self.port_open_recv("COM8", 9600)   
         # 视频显示区域
         self.detect_flag=0
         self.frame_base = None
@@ -65,22 +56,46 @@ class MainWindow(QMainWindow,Ui_LWIR):
         self.feedback_information.setReadOnly(True)
         # 连接按钮等控件的信号与槽
         self.connect_button.clicked.connect(self.START_stream)
-        self.detection_button.clicked.connect(self.detection)
+        self.detection_button.clicked.connect(self.star_detection)
+        self.stopdet_button.clicked.connect(self.stopdetection)
         self.path_file.clicked.connect(self.pathfile)
         self.angle_display.currentIndexChanged.connect(self.angle_status)
         self.download_button.clicked.connect(self.download_capture)
+        self.openserial_button.clicked.connect(self.port_open_recv)
+        # 初始化串口实例
+        self.ser=serial.Serial()
+        # 初始化全局变量
+        self.detect_flag = False
         self.angle_flag=None
         self.angle_N=None
         self.folder_path = None
+    
+    def showEvent(self, event):
+            self.populate_ports()
+            super().showEvent(event)
 
-    def port_open_recv(self, com, baud):
-        self.ser.port = com
-        self.ser.baudrate = baud
-        self.ser.bytesize = 8
-        self.ser.stopbits = 1
-        self.ser.parity = "N"
-        self.ser.open()
+    def populate_ports(self):
+        self.serial_display.clear()  # 清空现有选项
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            self.serial_display.addItem(port.device)
 
+    def port_open_recv(self):
+        selected_port = self.serial_display.currentText()
+        if selected_port:
+            try:
+                self.ser.port = selected_port
+                self.ser.baudrate = 9600  # 根据需要调整波特率
+                self.ser.bytesize = 8
+                self.ser.stopbits = 1
+                self.ser.parity = 'N'
+                self.ser.open()
+                self.feedback_information.append(f"已连接到 {selected_port}。")
+            except Exception as e:
+                self.feedback_information.append(f"连接到 {selected_port} 时出错：{e}")
+        else:
+            self.feedback_information.append("未选择串口或无可用串口。")
+    
     def send(self,send_data):
         if self.ser.isOpen():
             self.ser.write(send_data.encode('utf-8'))
@@ -123,35 +138,43 @@ class MainWindow(QMainWindow,Ui_LWIR):
             self.display()
             cv2.waitKey(3)
     
-    def detection(self):
-        self.detection_running = True
-        def detection_loop(main_app_instance):
-            while main_app_instance.detection_running:
-                main_app_instance.send('0ma00000000\r')
-                time.sleep(0.5)
-                I90 = main_app_instance.frame_base
-                main_app_instance.send('0sj00008C00\r')
+    def star_detection(self):
+        self.detect_flag = True
+        threading.Thread(target=self.detection_loop).start()
 
-                main_app_instance.send('0fw\r')
-                time.sleep(0.5)
-                I0 = I90
-                I90 = main_app_instance.frame_base
-                main_app_instance.frame_function = RX(I0, I90)
-                main_app_instance.display()
-                main_app_instance.feedback_information.append("检测成功")
-                time.sleep(1)
+    def detection_loop(self):
+        while self.detect_flag:
+            self.send('0ma00000000\r')
+            time.sleep(0.5)
+            I90 = self.frame_base
+            self.send('0sj00008C00\r')
 
-                main_app_instance.send('0bw\r')
+            while True:
+                self.send('0fw\r')
                 time.sleep(0.5)
                 I0 = I90
-                I90 = main_app_instance.frame_base
-                main_app_instance.frame_function = RX(I0, I90)
-                main_app_instance.display()
-                main_app_instance.feedback_information.append("检测成功")
+                I90 = self.frame_base
+                self.frame_function = RX(I0, I90)
+                self.display()
+                self.feedback_information.append("检测成功")
                 time.sleep(1)
-        threading.Thread(target=detection_loop, args=(self,)).start()
 
-    # 保存图像-打开图像保存设置窗口
+                self.send('0bw\r')
+                time.sleep(0.5)
+                I0 = I90
+                I90 = self.frame_base
+                self.frame_function = RX(I0, I90)
+                self.display()
+                self.feedback_information.append("检测成功")
+                time.sleep(1)
+
+                if not self.detect_flag:
+                    break
+        self.feedback_information.append("检测已停止")
+
+    def stopdetection(self):
+        self.detect_flag = False
+
     def pathfile(self):
         self.folder_path = QFileDialog.getExistingDirectory(self, "选择文件夹", "/")
         if self.folder_path:
@@ -190,7 +213,6 @@ class MainWindow(QMainWindow,Ui_LWIR):
                 main_app_instance.capture_running=False
                 current_time = datetime.datetime.now().strftime('%Y-%m-%d-%H_%M_%S')
                 folder_name = str(main_app_instance.angle_flag) + '_' + current_time+'/'
-                print(folder_name)
                 os.makedirs(main_app_instance.folder_path + '/'+folder_name)
                 text_folder = "文件夹" + format(folder_name) + "创建成功"
                 main_app_instance.feedback_information.append(text_folder)

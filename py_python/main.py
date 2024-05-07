@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget,QFileDialog
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtCore import QTimer, Qt
 from PyQt5.QtWidgets import QDialog
-from PyQt5 import uic
+from PyQt6 import uic
 from LWIR_NVIDIAui import Ui_MainWindow
 from capture_setting import Ui_capture_setting
 import sys
