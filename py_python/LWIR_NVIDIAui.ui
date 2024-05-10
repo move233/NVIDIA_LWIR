@@ -1,200 +1,379 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>LWIR</class>
+ <widget class="QWidget" name="LWIR">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>690</width>
-    <height>392</height>
+    <width>660</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Form</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="serial_setting_button">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>310</y>
-      <width>81</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>幼圆</family>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>端口设置</string>
-    </property>
-    <property name="icon">
-     <iconset>
-      <normaloff>../图标/设置.png</normaloff>../图标/设置.png</iconset>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="feedback_information">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>190</y>
-      <width>251</width>
-      <height>151</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>幼圆</family>
-      <pointsize>7</pointsize>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="verticalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOn</enum>
-    </property>
-   </widget>
-   <widget class="QLabel" name="video_base">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>20</y>
-      <width>381</width>
-      <height>281</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QLabel {
-    background-color: rgb(255, 255, 255); 
-}</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="video_function">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>20</y>
-      <width>251</width>
-      <height>161</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QLabel {
-    background-color: rgb(255, 255, 255); 
-}</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="function_name">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>20</y>
-      <width>131</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>宋体</family>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QLabel {
-    background-color: rgb(204, 224, 254); 
-}</string>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;时序型目标检测结果&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="capture_button">
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>310</y>
-      <width>81</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>幼圆</family>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>图像采集</string>
-    </property>
-    <property name="icon">
-     <iconset>
-      <normaloff>../图标/采集图像.png</normaloff>../图标/采集图像.png</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="detection_button">
-    <property name="geometry">
-     <rect>
-      <x>220</x>
-      <y>310</y>
-      <width>81</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>幼圆</family>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>目标检测</string>
-    </property>
-    <property name="icon">
-     <iconset>
-      <normaloff>../图标/录制视频.png</normaloff>../图标/录制视频.png</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="connect_button">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>310</y>
-      <width>81</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>打开相机</string>
-    </property>
-    <property name="icon">
-     <iconset>
-      <normaloff>../图标/连接相机.png</normaloff>../图标/连接相机.png</iconset>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QMenuBar" name="menubar">
+  <widget class="QLabel" name="video_base">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>690</width>
+     <x>10</x>
+     <y>10</y>
+     <width>381</width>
+     <height>281</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+    background-color: rgb(255, 255, 255); 
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="detection_button">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>180</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>宋体</family>
+     <pointsize>10</pointsize>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>目标检测</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../图标/录制视频.png</normaloff>../图标/录制视频.png</iconset>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="download_button">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>370</y>
+     <width>81</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>宋体</family>
+     <pointsize>10</pointsize>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>图像采集</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../图标/采集图像.png</normaloff>../图标/采集图像.png</iconset>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="connect_button">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>340</y>
+     <width>81</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>宋体</family>
+     <pointsize>10</pointsize>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>打开相机</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../图标/连接相机.png</normaloff>../图标/连接相机.png</iconset>
+   </property>
+  </widget>
+  <widget class="QLabel" name="function_name">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>10</y>
+     <width>131</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>宋体</family>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+    background-color: rgb(204, 224, 254); 
+}</string>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;时序型目标检测结果&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="video_function">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>10</y>
+     <width>251</width>
+     <height>161</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+    background-color: rgb(255, 255, 255); 
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="feedback_information">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>210</y>
+     <width>251</width>
+     <height>171</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>幼圆</family>
+     <pointsize>7</pointsize>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="verticalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOn</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="path_label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>340</y>
+     <width>61</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>保存位置：</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="angle_display">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>370</y>
+     <width>201</width>
      <height>22</height>
     </rect>
    </property>
+   <item>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>90°（2通道）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>60°（3通道）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>45°（4通道）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>30°（6通道）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>5°（36通道）</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QPushButton" name="path_file">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>340</y>
+     <width>21</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="path_display">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>340</y>
+     <width>181</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="angle_label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>370</y>
+     <width>61</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>偏振通道：</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="serial_display">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>310</y>
+     <width>201</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>90°（2通道）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>60°（3通道）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>45°（4通道）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>30°（6通道）</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>5°（36通道）</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="serial_label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>310</y>
+     <width>61</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>串口设置：</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="openserial_button">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>310</y>
+     <width>81</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>宋体</family>
+     <pointsize>10</pointsize>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>打开串口</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../图标/设置.png</normaloff>../图标/设置.png</iconset>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="stopdet_button">
+   <property name="geometry">
+    <rect>
+     <x>540</x>
+     <y>180</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>宋体</family>
+     <pointsize>10</pointsize>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>停止检测</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../图标/关闭相机.png</normaloff>../图标/关闭相机.png</iconset>
+   </property>
   </widget>
  </widget>
- <resources>
-  <include location="../图标/pic.qrc"/>
- </resources>
+ <resources/>
  <connections/>
+ <slots>
+  <slot>captureset_window()</slot>
+ </slots>
 </ui>

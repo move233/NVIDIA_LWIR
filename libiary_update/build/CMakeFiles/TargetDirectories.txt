@@ -1,0 +1,3 @@
+E:/vscode_c++_project/nvidia_LWIR/libiary_update/build/CMakeFiles/udp_dll.dir
+E:/vscode_c++_project/nvidia_LWIR/libiary_update/build/CMakeFiles/edit_cache.dir
+E:/vscode_c++_project/nvidia_LWIR/libiary_update/build/CMakeFiles/rebuild_cache.dir
